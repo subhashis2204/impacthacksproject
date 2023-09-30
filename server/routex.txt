@@ -1,0 +1,13 @@
+The application must maintain a 'username' state which contains the username of the org/user
+
+global variable : username, type
+
+username : <org/user username>
+type : <org/user>
+
+condition needs to be checked if it an org or user then the appropriate link is hit
+
+POST /org/events/new
+GET  /org/events
+POST /org/signup
+GET  /org/

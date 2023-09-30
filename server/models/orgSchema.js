@@ -6,7 +6,8 @@ const orgSchema = new mongoose.Schema({
   orgDescription: String,
   orgAreasOfWork: [String],
   orgEvents: {
-    type: [mongoose.types.ObjectId],
+    type: [mongoose.Schema.Types.ObjectId],
+    ref: "event",
   },
 })
 

@@ -1,0 +1,8 @@
+{
+    "eventName": "subhashis",
+    "eventDescription": "subhashis",
+    "eventDate": "2023-09-03,
+    "eventTime": "13:30",
+    "eventLocation": "Kolkata",
+    "eventAreasOfWork": ["child", "women"],
+  }
