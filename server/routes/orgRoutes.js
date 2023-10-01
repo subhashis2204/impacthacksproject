@@ -1,6 +1,8 @@
 const router = require("express").Router()
 const Org = require("../models/orgSchema")
 const Event = require("../models/eventSchema")
+const axios = require("axios")
+const User = require("../models/userSchema")
 
 const serializeEvents = (orgEvents) => {
   const result = orgEvents.map(
@@ -96,26 +98,41 @@ router.post("/events/new", async (req, res) => {
     eventDescription,
     eventDate,
     eventTime,
-    eventLocation,
+    eventAddress,
     eventAreasOfWork,
   } = req.body
 
   const requiredOrg = await Org.findOne({ username })
   const eventDateTime = new Date(`${eventDate}T${eventTime}:00Z`)
 
+  const { data } = await axios.get(process.env.GEOURL, {
+    params: {
+      key: process.env.GEOKEY,
+      q: eventAddress,
+      limit: 1,
+    },
+  })
+
+  const { lat, lng } = data.results[0].geometry
+
   const newEvent = new Event({
     eventName: eventName,
     eventDescription: eventDescription,
     eventDateTime: eventDateTime,
-    eventLocation: eventLocation,
+    eventAddress: eventAddress,
     eventAreasOfWork: eventAreasOfWork,
     eventVolunteers: [],
   })
 
-  newEvent.save()
+  newEvent.eventLocation = {
+    type: "Point",
+    coordinates: [lng, lat],
+  }
+
+  await newEvent.save()
 
   requiredOrg.orgEvents.push(newEvent._id)
-  requiredOrg.save()
+  await requiredOrg.save()
 
   res.send("new event created")
 

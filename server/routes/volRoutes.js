@@ -1,15 +1,20 @@
 const router = require("express").Router()
 
+const axios = require("axios")
+
 const Vol = require("../models/volSchema")
 const Event = require("../models/eventSchema")
 const User = require("../models/userSchema")
 
+require("dotenv").config()
+
 const serializeEvents = (volEvents) => {
   const result = volEvents.map(
     ({
+      _id,
       eventName,
       eventDateTime,
-      eventLocation,
+      eventAddress,
       eventDescription,
       eventAreasOfWork,
       eventVolunteers,
@@ -26,11 +31,12 @@ const serializeEvents = (volEvents) => {
       const eventTime = `${hours}:${minutes}`
 
       return {
+        _id,
         eventName,
         eventDescription,
         eventDate,
         eventTime,
-        eventLocation,
+        eventAddress,
         eventAreasOfWork,
         eventVolunteers: eventVolunteers.length,
       }
@@ -51,30 +57,50 @@ router.get("/", async (req, res) => {
     volEvents: modifiedEvents,
   }
 
-  const events = await Event.find({ eventDateTime: { $gte: new Date() } })
-    .sort({ eventDateTime: 1 })
-    .limit(3)
+  const interestedEvents = await Event.aggregate([
+    {
+      $geoNear: {
+        near: {
+          type: "Point",
+          coordinates: requiredVol.volLocation.coordinates,
+        },
+        distanceField: "dist",
+        spherical: true,
+      },
+    },
+  ])
 
-  console.log(events)
+  const filteredEvents = serializeEvents(interestedEvents)
 
-  res.send(requiredVol)
+  const response = {
+    ...requiredVol,
+    interested: [...filteredEvents],
+  }
+
+  res.send(response)
 })
 
 router.post("/signup", async (req, res) => {
-  const { username, volName, volInterests } = req.body
-  const newVol = new Vol({
-    username,
-    volName,
-    volInterests,
+  const { username, volName, volInterests, volAddress } = req.body
+  const newVol = new Vol({ username, volName, volInterests })
+
+  const { data } = await axios.get(process.env.GEOURL, {
+    params: {
+      key: process.env.GEOKEY,
+      q: volAddress,
+      limit: 1,
+    },
   })
+
+  const { lat, lng } = data.results[0].geometry
+
+  newVol.volLocation = {
+    type: "Point",
+    coordinates: [lng, lat],
+  }
+  const newUser = new User({ username, userType: "volunteer" })
 
   await newVol.save()
-
-  const newUser = new User({
-    username,
-    userType: "volunteer",
-  })
-
   await newUser.save()
 
   res.send(newVol)
