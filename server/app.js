@@ -5,6 +5,7 @@ const volRouter = require("./routes/volRoutes")
 const orgRouter = require("./routes/orgRoutes")
 const dbConnection = require("./db.config")
 const User = require("./models/userSchema")
+const cors = require("cors")
 
 const sessionConfig = {
   secret: "my-secret",
@@ -30,7 +31,7 @@ app.post("/login", async (req, res) => {
 })
 
 app.use(session(sessionConfig))
-
+app.use(cors())
 app.use("/orgs", orgRouter)
 app.use("/vol", volRouter)
 

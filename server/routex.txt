@@ -1,13 +1,19 @@
 The application must maintain a 'username' state which contains the username of the org/user
 
 global variable : username, type
+local variable : eventId
 
 username : <org/user username>
 type : <org/user>
 
 condition needs to be checked if it an org or user then the appropriate link is hit
 
-POST /org/events/new
-GET  /org/events
-POST /org/signup
-GET  /org/
+ALL THE BELOW ROUTES ASSUME THAT THE 'USERNAME' IS PASSED ON ALONG WITH EVERY REQUEST
+
+GET  /org/             - index route for org
+POST /org/signup       - route for org signup
+POST /org/events/new   - route for orgs to create new events
+
+GET  /vol/             - index route for vol
+POST /vol/signup       - route for vol signup
+POST /vol/event/signup - route for even signup for volunteers (Requires both the 'eventID' and 'username' to be passed)
