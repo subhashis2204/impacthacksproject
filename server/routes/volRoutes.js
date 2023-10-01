@@ -1,6 +1,8 @@
 const router = require("express").Router()
 
 const Vol = require("../models/volSchema")
+const Event = require("../models/eventSchema")
+const User = require("../models/userSchema")
 
 const serializeEvents = (volEvents) => {
   const result = volEvents.map(
@@ -40,9 +42,7 @@ const serializeEvents = (volEvents) => {
 
 router.get("/", async (req, res) => {
   const { username } = req.query
-
   let requiredVol = await Vol.findOne({ username }).populate("volEvents")
-
   const { volEvents } = requiredVol
   const modifiedEvents = serializeEvents(volEvents)
 
@@ -51,12 +51,17 @@ router.get("/", async (req, res) => {
     volEvents: modifiedEvents,
   }
 
+  const events = await Event.find({ eventDateTime: { $gte: new Date() } })
+    .sort({ eventDateTime: 1 })
+    .limit(3)
+
+  console.log(events)
+
   res.send(requiredVol)
 })
 
 router.post("/signup", async (req, res) => {
   const { username, volName, volInterests } = req.body
-
   const newVol = new Vol({
     username,
     volName,
@@ -65,16 +70,26 @@ router.post("/signup", async (req, res) => {
 
   await newVol.save()
 
+  const newUser = new User({
+    username,
+    userType: "volunteer",
+  })
+
+  await newUser.save()
+
   res.send(newVol)
 })
 
 router.post("/event/signup", async (req, res) => {
   const { username, eventId } = req.body
-
   const requiredVol = await Vol.findOne({ username })
+  const requiredEvent = await Event.findById(eventId)
+
   requiredVol.volEvents.push(eventId)
+  requiredEvent.eventVolunteers.push(requiredVol._id)
 
   await requiredVol.save()
+  await requiredEvent.save()
 
   res.send("event added")
 })

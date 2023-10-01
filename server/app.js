@@ -1,31 +1,19 @@
 const express = require("express")
 const app = express()
 const session = require("express-session")
-const mongoose = require("mongoose")
 const volRouter = require("./routes/volRoutes")
 const orgRouter = require("./routes/orgRoutes")
+const dbConnection = require("./db.config")
+const User = require("./models/userSchema")
 
-mongoose
-  .connect("mongodb://localhost:27017/express-auth", {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => {
-    console.log("Connected to database!")
-  })
-  .catch((error) => {
-    console.log("Connection failed!")
-    console.log(error)
-  })
+const sessionConfig = {
+  secret: "my-secret",
+  resave: false,
+  saveUninitialized: false,
+  cookie: { maxAge: 60000 },
+}
 
-app.use(
-  session({
-    secret: "my-secret",
-    resave: false,
-    saveUninitialized: false,
-    cookie: { maxAge: 60000 },
-  })
-)
+dbConnection()
 
 app.use(express.urlencoded({ extended: true }))
 app.use(express.json())
@@ -33,6 +21,15 @@ app.use(express.json())
 app.get("/", (req, res) => {
   res.send("Hello World!")
 })
+
+app.post("/login", async (req, res) => {
+  const { username } = req.body
+  const requiredUser = await User.findOne({ username })
+
+  res.send(requiredUser)
+})
+
+app.use(session(sessionConfig))
 
 app.use("/orgs", orgRouter)
 app.use("/vol", volRouter)

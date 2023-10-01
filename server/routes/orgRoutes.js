@@ -67,6 +67,12 @@ router.post("/signup", async (req, res) => {
 
   newOrg.save()
 
+  const newUser = new User({
+    username,
+    userType: "org",
+  })
+
+  await newUser.save()
   res.send("new org created")
 })
 
