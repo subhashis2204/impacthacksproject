@@ -78,19 +78,6 @@ router.post("/signup", async (req, res) => {
   res.send("new org created")
 })
 
-// router.get("/events", async (req, res) => {
-//   const { username } = req.query
-//   const requiredEvents = await Org.findOne(
-//     { username },
-//     { _id: 0, orgEvents: 1 }
-//   ).populate("orgEvents")
-
-//   const { orgEvents } = requiredEvents
-//   const result = serializeEvents(orgEvents)
-
-//   res.send(result)
-// })
-
 router.post("/events/new", async (req, res) => {
   const {
     username,

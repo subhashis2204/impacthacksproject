@@ -48,6 +48,7 @@ const serializeEvents = (volEvents) => {
 
 router.get("/", async (req, res) => {
   const { username } = req.query
+  console.log(username)
   let requiredVol = await Vol.findOne({ username }).populate("volEvents")
   const { volEvents } = requiredVol
   const modifiedEvents = serializeEvents(volEvents)
